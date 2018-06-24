@@ -1,14 +1,14 @@
-CC = g++
+CC = clang++
 MPICXX = mpicxx
 
 SPECDEP=makefile
-all: omp mpi hybrid
+FLAG=/Users/Eric/include/eigen3/
 
-omp: svd_omp.cc $(SPECDEP)
-	$(CC) -fopenmp svd_omp.cc -o omp  
+
+serial: svd_serial.cc $(SPECDEP)
+	$(CC) -I $(FLAG) svd_serial.cc -o svd_serial 
 
 mpi: svd_mpi.cc $(SPECDEP)
-	$(MPICXX) svd_mpi.cc -o mpi
+	$(MPICXX) -I $(FLAG) svd_mpi.cc -o svd_mpi
 
-hybrid: svd_hybrid.cc $(SPECDEP)
-	$(MPICXX) -fopenmp svd_hybrid.cc -o hybrid
+
