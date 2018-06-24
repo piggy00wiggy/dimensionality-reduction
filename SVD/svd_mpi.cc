@@ -22,8 +22,8 @@ using namespace Eigen;
 
 typedef Matrix<double, Dynamic, Dynamic, RowMajor> RMatrixXd;
 
-int main(int argc, char *argv[]) {
-  int npes, myrank;
+int main(int argc, char *argv[]){
+  int npes, myrank; // npes number of processors, myrank, processor ID No.
   MPI::Init(argc, argv);
   myrank = MPI::COMM_WORLD.Get_rank();
   npes = MPI::COMM_WORLD.Get_size();
@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
 
   int N = ceil(rows / npes);
 
-  double *recvbuf = new double[N * cols];
+  double *recvbuf = new double[N * cols]; // new: dynamic memory allocation
   double *stack = new double[npes * cols * cols];
   double *mat_q2 = new double[npes * cols * cols];
   double *mat_u = new double[cols * cols];
@@ -67,14 +67,14 @@ int main(int argc, char *argv[]) {
 
   RMatrixXd a = Map<RMatrixXd>(recvbuf, N, cols);
 
-  MPI::COMM_WORLD.Barrier();
-  double start = MPI::Wtime();
+  MPI::COMM_WORLD.Barrier(); //
+  double start = MPI::Wtime(); //
 
-  LLT<RMatrixXd> lltOfA(a.transpose() * a);
-  res = lltOfA.matrixL().transpose();
+  LLT<RMatrixXd> lltOfA(a.transpose() * a); // object of LLT decomposition a^T * a
+  res = lltOfA.matrixL().transpose(); // L^T matrix
   q1 = a * res.inverse();
 
-  double *residual = res.data();
+  double *residual = res.data(); // assign pointer of res to residual, data() return the pointer of the value
 
   MPI::COMM_WORLD.Gather(residual, cols * cols, MPI::DOUBLE, stack, cols * cols,
                          MPI::DOUBLE, 0);
