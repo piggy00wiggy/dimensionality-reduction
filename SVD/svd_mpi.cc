@@ -22,7 +22,7 @@ using namespace Eigen;
 
 typedef Matrix<double, Dynamic, Dynamic, RowMajor> RMatrixXd;
 
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[]) {
   int npes, myrank; // npes number of processors, myrank, processor ID No.
   MPI::Init(argc, argv);
   myrank = MPI::COMM_WORLD.Get_rank();
@@ -67,14 +67,16 @@ int main(int argc, char *argv[]){
 
   RMatrixXd a = Map<RMatrixXd>(recvbuf, N, cols);
 
-  MPI::COMM_WORLD.Barrier(); //
+  MPI::COMM_WORLD.Barrier();   //
   double start = MPI::Wtime(); //
 
-  LLT<RMatrixXd> lltOfA(a.transpose() * a); // object of LLT decomposition a^T * a
+  LLT<RMatrixXd> lltOfA(a.transpose() *
+                        a);           // object of LLT decomposition a^T * a
   res = lltOfA.matrixL().transpose(); // L^T matrix
   q1 = a * res.inverse();
 
-  double *residual = res.data(); // assign pointer of res to residual, data() return the pointer of the value
+  double *residual = res.data(); // assign pointer of res to residual, data()
+                                 // return the pointer of the value
 
   MPI::COMM_WORLD.Gather(residual, cols * cols, MPI::DOUBLE, stack, cols * cols,
                          MPI::DOUBLE, 0);
@@ -106,6 +108,14 @@ int main(int argc, char *argv[]){
 
     delete[] residual2;
     mat_u = u.data();
+
+    ofstream foutSingular, foutV;
+
+    foutSingular.open("svd_mpi_singular.dat", ofstream::trunc | ofstream::out);
+    foutSingular << svd.singularValues() << endl;
+
+    foutV.open("svd_mpi_V.dat", ofstream::trunc | ofstream::out);
+    foutV << v << endl;
   }
 
   MPI::COMM_WORLD.Scatter(mat_q2, cols * cols, MPI::DOUBLE, q2buf, cols * cols,
@@ -127,10 +137,14 @@ int main(int argc, char *argv[]){
   MPI::COMM_WORLD.Reduce(&time, &max, 1, MPI::DOUBLE, MPI::MAX, 0);
 
   if (myrank == 0) {
-    ofstream foutU, foutU;
-    fout.open("mpi_.txt", ofstream::trunc | ofstream::out);
-    fout << "Time (in seconds) : " << rows << " " << cols << " : " << max
-         << endl;
+    ofstream foutTime, foutU;
+
+    foutTime.open("svd_mpi_Time.DAT", ofstream::trunc | ofstream::out);
+    foutTime << "Time (in seconds) : " << rows << " " << cols << " : " << max
+             << endl;
+
+    foutU.open("svd_mpi_U.dat", ofstream::trunc | ofstream::out);
+    foutU << a << endl;
   }
 
   delete[] recvbuf;
